@@ -42,7 +42,6 @@ class imArray:
     while row<18:
       self.rect[row][:] = [0]*18
       row+=1
-      break
     if DEBUG:
       print(str(self))
   def toTextRepr(self):
