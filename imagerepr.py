@@ -1,102 +1,116 @@
 ﻿from tkinter import *
+from itertools import groupby
 import tkMessageBox
 import tkFileDialog
 
-LINE_DISTANCE = 20
-CANVAS_WIDTH = 360
-CANVAS_HEIGHT = 360 
+LD = 20 #line distance
+CW = 360 #canvas width
+CH = 360 #canvas height
+DEBUG = False
 
-rect = []
-for i in range(CANVAS_HEIGHT//LINE_DISTANCE):
-  rect.append([])
-  for j in range(CANVAS_WIDTH//LINE_DISTANCE):
-    rect[-1].append(0)
-
-
-def rectIndexFromXY(x,y):
-  return((y//LINE_DISTANCE,x//LINE_DISTANCE))
-
-def numRepr():
-  nums = []
-  for row in rect:
-    nums.append([])
-    count = 0
-    countType = 0 #0 means white
-                  #1 means black
-    for cell in row:
-      if cell == countType:
-        count += 1
+class imArray:
+  def __init__(self):
+    self.rect = []
+    #initialize rect
+    for i in range(CH//LD):
+      self.rect.append([])
+      for j in range(CW//LD):
+        self.rect[-1].append(0)
+  def __str__(self):
+    return("\n".join(["".join([str(x) for x in row]) for row in self.rect]))
+  def flip(self,i,j):
+    self.rect[i][j] = (self.rect[i][j] + 1) % 2
+  def fromTextRepr(self,text):
+    row = 0
+    for line in text.split("\n"):
+      start = 0
+      color = 0 #0 - white, 1 - black
+      if DEBUG:
+        print(line.split(","))
+      for series in line.split(","):
+        for i in range(int(series)):
+          self.rect[row][start + i] = color
+        #proceed to next value
+        color = (color + 1) % 2
+        start += int(series)
+      #fill next columns with the next color
+      if start < 18:
+        for i in range(18-start):
+          self.rect[row][start + i] = color
+      row += 1
+    #fill next rows with white
+    while row<18:
+      self.rect[row][:] = [0]*18
+      row+=1
+      break
+    if DEBUG:
+      print(str(self))
+  def toTextRepr(self):
+    lines = []
+    for row in self.rect:
+      groups = groupby(row)
+      if next(groups)[0]==1:
+        text="0,"
       else:
-        nums[-1].append(count)
-        countType = (countType + 1) % 2
-        count = 1
-    nums[-1].append(count)
-  return(nums)
+        text=""
+      groups = groupby(row)
+      text+=",".join([str(len(list(appearances))) 
+        for (_,appearances) in groups])
+      if DEBUG:
+        print(text)
+      lines.append(text)
+    returnText = "\n".join(lines)
+    if DEBUG:
+      print(returnText)
+    return(returnText)
 
-master = Tk()
-w = Canvas(master, 
-           width=CANVAS_WIDTH,
-           height=CANVAS_HEIGHT)
-
-def checkered():
-  # horizontal lines at an interval of "line_distance" pixel
-  for x in range(0,CANVAS_WIDTH,LINE_DISTANCE):
-    # vertical lines at an interval of "line_distance" pixel
-    for y in range(0,CANVAS_HEIGHT,LINE_DISTANCE):
-      w.create_rectangle(x, y, x+LINE_DISTANCE,y+LINE_DISTANCE, fill="#ffffff")
-
-def drawRect():
-  for x in range(0,CANVAS_WIDTH,LINE_DISTANCE):
-    # vertical lines at an interval of "line_distance" pixel
-    for y in range(0,CANVAS_HEIGHT,LINE_DISTANCE):
-        if rect[x//LINE_DISTANCE][y//LINE_DISTANCE] == 0:
-          w.create_rectangle(x,y,x + LINE_DISTANCE, y+LINE_DISTANCE, fill="#ffffff")
+class canvasClass:
+  def __init__(self,canvas):
+    self.canvas = canvas
+    # horizontal lines at an interval of "LD" pixel
+    for x in range(0,CW,LD):
+      # vertical lines at an interval of "LD" pixel
+      for y in range(0,CH,LD):
+        canvas.create_rectangle(x, y, x+LD,y+LD, fill="#ffffff")
+  def draw(self):
+    for i in range(len(theImArray.rect)):
+      for j in range(len(theImArray.rect[i])):
+        if theImArray.rect[i][j] == 0:
+          self.canvas.create_rectangle(j*LD,i*LD, (j+1)*LD, (i+1)*LD, fill="#ffffff")
         else:
-          w.create_rectangle(x,y,x + LINE_DISTANCE, y+LINE_DISTANCE, fill="#000000")   
+          self.canvas.create_rectangle(j*LD,i*LD, (j+1)*LD, (i+1)*LD, fill="#000000")
+  def paint(self,i,j,color):
+    self.canvas.create_rectangle(j*LD,i*LD, (j+1)*LD, (i+1)*LD, fill=color)
+    if DEBUG:
+      print(str(theImArray))    
+
+
 
 def openFile():
   with tkFileDialog.askopenfile(mode='r') as f:
-    row = 0
-    for line in f.readlines():
-      startSer = 0
-      countType = 0
-      for num in line.split(","):
-        for i in range(int(num)):
-          rect[startSer + i][row] = countType
-        countType = (countType + 1) % 2
-        startSer += int(num)
-      if startSer < 18:
-        for i in range(18-startSer):
-          rect[startSer + i][row] = countType
-      row += 1
-      if row==18:
-        break
-    drawRect()
-
-
-
+    theImArray.fromTextRepr(f.read())
+    theCanvas.draw()
 
 
 def saveFile():
   with tkFileDialog.asksaveasfile(mode='w') as f:
-    for line in numRepr():
-      f.write(",".join([str(x) for x in line])+"\n")
-
-  
-
+    f.write(theImArray.toTextRepr())
 
 def clicked(event):
-  for x in range(0,CANVAS_WIDTH,LINE_DISTANCE):
-    # vertical lines at an interval of "line_distance" pixel
-    for y in range(0,CANVAS_HEIGHT,LINE_DISTANCE):
-      if x < event.x < x+LINE_DISTANCE and y < event.y < y+LINE_DISTANCE:
-        if rect[rectIndexFromXY(event.x,event.y)[0]][rectIndexFromXY(event.x,event.y)[1]] == 0:
-          w.create_rectangle(x,y,x + LINE_DISTANCE, y+LINE_DISTANCE, fill="#000000")
-          rect[rectIndexFromXY(event.x,event.y)[0]][rectIndexFromXY(event.x,event.y)[1]] = 1
-        else:
-          w.create_rectangle(x,y,x + LINE_DISTANCE, y+LINE_DISTANCE, fill="#ffffff")
-          rect[rectIndexFromXY(event.x,event.y)[0]][rectIndexFromXY(event.x,event.y)[1]] = 0
+  i = event.y//LD
+  j = event.x//LD
+  theImArray.flip(i,j)
+  if theImArray.rect[i][j] == 0:
+    theCanvas.paint(i,j,"#ffffff")
+  else:
+    theCanvas.paint(i,j,"#000000")
 
+theImArray = imArray()
+print(str(theImArray))
+
+master = Tk()
+
+theCanvas = canvasClass(Canvas(master, width=CW, height=CH))
 
 #The file menu
 menubar = Menu(master)
@@ -108,9 +122,7 @@ filemenu.add_command(label="Exit", command=master.quit)
 menubar.add_cascade(label="File", menu=filemenu)
 master.config(menu=menubar)
 
-w.pack()
-w.bind("<Button-1>", clicked)
-
-checkered()
+theCanvas.canvas.pack()
+theCanvas.canvas.bind("<Button-1>", clicked)
 
 mainloop()
