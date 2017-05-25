@@ -2,6 +2,7 @@
 from itertools import groupby
 import tkMessageBox
 import tkFileDialog
+import math
 
 LD = 20 #line distance
 CW = 360 #canvas width
@@ -18,6 +19,10 @@ class imArray:
         self.rect[-1].append(0)
   def __str__(self):
     return("\n".join(["".join([str(x) for x in row]) for row in self.rect]))
+  def reset(self):
+    for i in range(len(self.rect)):
+      for j in range(len(self.rect[i])):
+        self.rect[i][j] = 0
   def flip(self,i,j):
     self.rect[i][j] = (self.rect[i][j] + 1) % 2
   def fromTextRepr(self,text):
@@ -83,7 +88,9 @@ class canvasClass:
     if DEBUG:
       print(str(theImArray))    
 
-
+def newFile():
+  theImArray.reset()
+  theCanvas.draw()
 
 def openFile():
   with tkFileDialog.askopenfile(mode='r') as f:
@@ -95,17 +102,39 @@ def saveFile():
   with tkFileDialog.asksaveasfile(mode='w') as f:
     f.write(theImArray.toTextRepr())
 
+
+prevPos = (0,0)
+
 def clicked(event):
   i = event.y//LD
   j = event.x//LD
+  global prevPos
+  prevPos = (event.y//LD,event.x//LD)
   theImArray.flip(i,j)
+  if theImArray.rect[i][j] == 0:
+    theCanvas.paint(i,j,"#ffffff")
+  else:
+    theCanvas.paint(i,j,"#000000")
+def motion(event):
+  i = event.y//LD
+  j = event.x//LD
+  global prevPos
+  if math.fabs(prevPos[0]-i) > 0 or math.fabs(prevPos[1]-j) >0:
+    theImArray.flip(i,j)
+    prevPos = (event.y//LD,event.x//LD)
+  if DEBUG:
+    print(prevPos)
+    print("-----")
+    print((event.y//LD,event.x//LD))
+    
   if theImArray.rect[i][j] == 0:
     theCanvas.paint(i,j,"#ffffff")
   else:
     theCanvas.paint(i,j,"#000000")
 
 theImArray = imArray()
-print(str(theImArray))
+if DEBUG:
+  print(str(theImArray))
 
 master = Tk()
 
@@ -114,6 +143,7 @@ theCanvas = canvasClass(Canvas(master, width=CW, height=CH))
 #The file menu
 menubar = Menu(master)
 filemenu = Menu(menubar, tearoff=0)
+filemenu.add_command(label="New", command=newFile)
 filemenu.add_command(label="Open", command=openFile)
 filemenu.add_command(label="Save", command=saveFile)
 filemenu.add_separator()
@@ -123,5 +153,6 @@ master.config(menu=menubar)
 
 theCanvas.canvas.pack()
 theCanvas.canvas.bind("<Button-1>", clicked)
+theCanvas.canvas.bind("<B1-Motion>", motion)
 
 mainloop()
