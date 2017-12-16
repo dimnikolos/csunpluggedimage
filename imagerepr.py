@@ -1,7 +1,6 @@
-﻿from tkinter import *
+﻿from tkinter import Tk
+from tkinter import filedialog
 from itertools import groupby
-import tkMessageBox
-import tkFileDialog
 import math
 
 LD = 20 #line distance
@@ -93,13 +92,13 @@ def newFile():
   theCanvas.draw()
 
 def openFile():
-  with tkFileDialog.askopenfile(mode='r') as f:
+  with filedialog.askopenfile(mode='r') as f:
     theImArray.fromTextRepr(f.read())
     theCanvas.draw()
 
 
 def saveFile():
-  with tkFileDialog.asksaveasfile(mode='w') as f:
+  with filedialog.asksaveasfile(mode='w') as f:
     f.write(theImArray.toTextRepr())
 
 
