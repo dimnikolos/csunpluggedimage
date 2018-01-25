@@ -1,19 +1,24 @@
 <!doctype html>
 
 <head>
-<meta charset="UTF-8">
+<meta charset='UTF-8'>
 <title>
 CSUnplugged Image
 </title>
 </head>
-<body style="background-color:#ddd">
+<body style='background-color:#ddddd' onload='reset()'>
+<div class='hithere'></div>
 	<div>
-		<div><canvas width="360px" height = "360px" id = "cgrid"></canvas></div>
-		<div><textarea cols = '40' rows = '18' id = "ctext"></textarea></div>
+		<div><canvas width='360px' height = '360px' id = 'cgrid'></canvas></div>
+		<div><textarea cols = '40' rows = '18' id = 'ctext'></textarea></div>
 		<div>
-		<button onclick = "drawImageFromText()" type="button">From text!</button>
-		<button onclick = "reset()" type="button">Reset!</button>
+		<button onclick = 'fromText()' type='button'>From text!</button>
+		<button onclick = 'reset()' type='button'>Reset!</button>
 		</div>
 	</div>
-<script src = "csunplugged.js"></script>
+
+<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
+<script src='./assets/js/imArray.js'></script>
+<script src='./assets/js/csunplugged.js'></script>
+
 </body>
