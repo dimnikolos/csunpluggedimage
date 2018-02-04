@@ -13,3 +13,6 @@ python imagerepr_python3.py
 ```
 
 
+There is also an online version written in Javascript: https://dimnikolos.github.io/csunpluggedimage/csunplugged.html
+
+Javascript code [here](https://github.com/dimnikolos/csunpluggedimage/tree/gh-pages)
